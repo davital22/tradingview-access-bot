@@ -1,7 +1,9 @@
-# ספריות בסיס ל־Chromium / Playwright
 libnss3
 libatk1.0-0
+libatk1.0-0t64
 libatk-bridge2.0-0
+libatk-bridge2.0-0t64
+libatspi2.0-0t64
 libcups2
 libdrm2
 libxkbcommon0
@@ -17,8 +19,6 @@ libu2f-udev
 libvulkan1
 libcurl4
 ca-certificates
-
-# תוספות מומלצות ליציבות
 libxshmfence1
 libpangocairo-1.0-0
 libpango-1.0-0
