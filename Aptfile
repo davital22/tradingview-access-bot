@@ -15,3 +15,4 @@ libu2f-udev
 libvulkan1
 libcurl4
 ca-certificates
+libasound2t64
