@@ -4,4 +4,5 @@ celery==5.4.0
 redis==5.0.8
 playwright==1.45.0
 python-dotenv==1.0.1
+greenlet==3.0.3
 
