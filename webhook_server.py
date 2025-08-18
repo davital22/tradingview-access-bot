@@ -4,6 +4,14 @@ from celery_worker import async_grant_access
 
 app = Flask(__name__)
 
+
+# webhook_server.py
+
+@app.route("/health", methods=["GET"])
+def health():
+    return {"status": "ok"}, 200
+
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
