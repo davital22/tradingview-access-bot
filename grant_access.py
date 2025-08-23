@@ -1,6 +1,8 @@
+# grant_access.py
 import os
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -170,7 +172,11 @@ async def search_and_add_user(page, username):
         raise RuntimeError("Failed to add user access") from e
 
 
-async def set_expiration_date(page, username):
+async def set_expiration_date(page, username, expiry_iso: Optional[str] = None):
+    """
+    Set expiration date for access. If expiry_iso is provided (e.g. '2025-08-25T14:40:33Z'),
+    use it; otherwise default to today + 30 days.
+    """
     try:
         await page.mouse.wheel(0, 800)
         await page.wait_for_timeout(300)
@@ -187,7 +193,17 @@ async def set_expiration_date(page, username):
         except PlaywrightTimeoutError:
             print("ℹ️ Checkbox not found – skipping toggle")
 
-        expiry = (datetime.today() + timedelta(days=30)).strftime("%Y-%m-%d")
+        # decide on expiry date string as YYYY-MM-DD
+        if expiry_iso:
+            try:
+                iso = expiry_iso.replace("Z", "+00:00")
+                dt = datetime.fromisoformat(iso)
+                expiry = dt.date().strftime("%Y-%m-%d")
+            except Exception:
+                expiry = (datetime.today() + timedelta(days=30)).strftime("%Y-%m-%d")
+        else:
+            expiry = (datetime.today() + timedelta(days=30)).strftime("%Y-%m-%d")
+
         date_input_selectors = ["input[placeholder='YYYY-MM-DD']", "input[placeholder='YYYY/MM/DD']", "input[type='date']"]
         try:
             date_input = await first_visible(page, date_input_selectors, timeout=5000)
@@ -354,7 +370,7 @@ async def click_grant_access(page, username):
 
 
 # ---------- Public API ----------
-async def grant_access(username: str, script_url: str) -> bool:
+async def grant_access(username: str, script_url: str, trial_end_gmt: Optional[str] = None) -> bool:
     """
     Open the script page, add user, set expiration, and click Grant.
     Returns True on success.
@@ -404,7 +420,7 @@ async def grant_access(username: str, script_url: str) -> bool:
             await open_manage_access_dialog(page, username)
             await switch_to_add_new_users_tab(page, username)
             await search_and_add_user(page, username)
-            await set_expiration_date(page, username)
+            await set_expiration_date(page, username, expiry_iso=trial_end_gmt)
             await click_grant_access(page, username)
         except Exception as e:
             print(f"❌ Error during grant_access process: {e}")
@@ -415,3 +431,6 @@ async def grant_access(username: str, script_url: str) -> bool:
 
     print(f"✅ Done (success={ok})")
     return ok
+
+
+# Optional
